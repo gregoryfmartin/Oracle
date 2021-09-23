@@ -14,7 +14,7 @@ $EVENTLOG_SOURCE = 'Oracle'
 $HOSTNAME = $env:COMPUTERNAME
 $HOST_ONEDRIVEEXISTS = if($env:OneDrive -OR $env:OneDriveCOnsumer) { $true } else { $false }
 $HOST_OS = $env:OS
-$HOST_COMPINFO = Get-ComputerInfo
+$HOST_COMPINFO = Get-ComputerInfo # This would fail before the check for the version would even take place
 $HOST_PSMODULEPATH = $env:PSModulePath
 $HOST_SYSDRIVE = $env:SystemDrive
 $HOST_SYSROOT = $env:SystemRoot
@@ -27,12 +27,23 @@ $DEBUGMSG_LEAVEFUN = "LEAVING FUNCTION :: "
 
 $ERRORMSG_OSCOMPAT = "FUNCTION CALL IS INCOMPATIBLE WITH THE CURRENT OPERATING SYSTEM! :: "
 $ERRORMSG_PSECOMPAT = "FUNCTION CALL IS INCOMPATIBLE WITH THE CURRENT POWERSHELL EDITION! :: "
+$ERRORMSG_PSVCOMPAT = "FUNCTION CALL IS INCOMPATIBLE WITH THE CURRENT POWERSHELL VERSION! :: "
 
 $DEBUG = $false
 
 
 
-<##>
+<#
+.SYNOPSIS
+Enables debugging for Oracle. This will result in verbose output on the console.
+
+.DESCRIPTION
+This function is compatible with the following operating systems: Windows, Linux, Mac
+
+This function is compatible with the following editions of PowerShell: Desktop, Core
+
+This function is compatible with the following versions of PowerShell: All
+#>
 Function Enable-Debugging {
     Process {
         $DEBUG = $true
@@ -41,10 +52,63 @@ Function Enable-Debugging {
 
 
 
-<##>
+<#
+.SYNOPSIS
+Disables debugging for Oracle. This will significantly reduce the output on the console.
+
+.DESCRIPTION
+This function is compatible with the following operating systems: Windows, Linux, Mac
+
+This function is compatible with the following editions of PowerShell: Desktop, Core
+
+This function is compatible with the following versions of PowerShell: All
+#>
 Function Disable-Debugging {
     Process {
         $DEBUG = $false
+    }
+}
+
+
+
+<#
+.SYNOPSIS
+Checks to see if the host is running PowerShell 5 or greater.
+
+.DESCRIPTION
+This function is compatible with the following operating systems: Windows, Linux, Mac
+
+This function is compatible with the following editions of PowerShell: Desktop, Core
+
+This function is compatible with the following versions of PowerShell: All
+
+Most of Oracle's functionality targets PowerShell 5 or greater. Computers that are running
+a major version of PowerShell that are less than that will likely encounter problems executing
+these functions. As of the current iteration of Oracle, when a function contains calls that
+require a modern version of PowerShell, it will simply force termination of execution.
+
+.OUTPUTS
+True if the major version of PowerShell is 5 or greater, false otherwise.
+#>
+Function Assert-PSVersionModern {
+    Begin {
+        if($DEBUG -EQ $true) {
+            Write-Host `
+                "$DEBUGMSG_ENTERFUN Assert-DesktopPSEdition"
+        }
+    }
+    Process {
+        if($HOST_PSVERSION.Major -GE 5) {
+            $true
+        } else {
+            $false
+        }
+    }
+    End {
+        if($DEBUG -EQ $true) {
+            Write-Host `
+                "$DEBUGMSG_LEAVEFUN Assert-DesktopPSEdition"
+        }
     }
 }
 
@@ -58,6 +122,8 @@ Checks to see if the executing environment is the Desktop Edition of PowerShell 
 This function is compatible with the following operating systems: Windows, Linux, Mac
 
 This function is compatible with the following editions of PowerShell: Desktop, Core
+
+This function is compatible with the following versions of PowerShell: All
 
 .OUTPUTS
 True if the PowerShell Edition is Desktop, false otherwise.
@@ -95,6 +161,8 @@ This function is compatible with the following operating systems: Windows, Linux
 
 This function is compatible with the following editions of PowerShell: Desktop, Core
 
+This function is compatible with the following versions of PowerShell: All
+
 .OUTPUTS
 True if the PowerShell Edition is Core, false otherwise.
 #>
@@ -130,6 +198,8 @@ Checks to see if the executing operating system is Windows.
 This function is compatible with the following operating systems: Windows, Linux, Mac
 
 This function is compatible with the following editions of PowerShell: Desktop, Core
+
+This function is compatible with the following versions of PowerShell: All
 
 .OUTPUTS
 True if the operating system is Windows, false otherwise.
@@ -167,6 +237,8 @@ This function is compatible with the following operating systems: Windows, Linux
 
 This function is compatible with the following editions of PowerShell: Desktop, Core
 
+This function is compatible with the following versions of PowerShell: All
+
 .OUTPUTS
 True if the operating system is MacOS, false otherwise.
 #>
@@ -202,6 +274,8 @@ Checks to see if the executing operating system is Linux.
 This function is compatible with the following operating systems: Windows, Linux, Mac
 
 This function is compatible with the following editions of PowerShell: Desktop, Core
+
+This function is compatible with the following versions of PowerShell: All
 
 .OUTPUTS
 True if the operating system is Linux, false otherwise.
@@ -239,6 +313,8 @@ This function is compatible with the following operating systems: Windows
 
 This function is compatible with the following editions of PowerShell: Desktop, Core
 
+This function is compatible with the following versions of PowerShell: All
+
 Creates an Event Source in the Windows Event Logger to use for logging application events.
 
 .PARAMETER LogName
@@ -249,7 +325,7 @@ Function New-NamedEventLog {
         [Parameter(Mandatory = $true, `
                     ValueFromPipeline = $true, `
                     ValueFromPipelineByPropertyName = $true, `
-                    HelpMessage = "Please provide the name of the Event Log Source to create.")]
+                    HelpMessage = 'Please provide the name of the Event Log Source to create.')]
         [String]$LogName
     )
     Begin {
@@ -290,6 +366,8 @@ This function is compatible with the following operating systems: Windows
 
 This function is compatible with the following editions of PowerShell: Desktop, Core
 
+This function is compatible with the following versions of PowerShell: All
+
 .PARAMETER LogName
 The name of the event source to write the log message to.
 
@@ -301,12 +379,12 @@ Function Write-NamedEventLogInfo {
         [Parameter(Mandatory = $true, `
                     ValueFromPipeline = $true, `
                     ValueFromPipelineByPropertyName = $true, `
-                    HelpMessage = "Please provide the name of the Event Log Source to use.")]
+                    HelpMessage = 'Please provide the name of the Event Log Source to use.')]
         [String]$LogName,
         [Parameter(Mandatory = $true, `
                     ValueFromPipeline = $true, `
                     ValueFromPipelineByPropertyName = $true, `
-                    HelpMessage = "Please provide the message to write to the Event Log Source.")]
+                    HelpMessage = 'Please provide the message to write to the Event Log Source.')]
         [String]$Message
     )
     Begin {
@@ -316,7 +394,7 @@ Function Write-NamedEventLogInfo {
         }
         if(-NOT(Assert-OSWindows)) {
             Write-Error `
-                -Message "$ERRORMSG_COMPAT Write-NamedEventLogInfo"
+                -Message "$ERRORMSG_OSCOMPAT Write-NamedEventLogInfo"
             throw(New-Object `
                 -TypeName System.PlatformNotSupportedException)
         }
@@ -348,6 +426,8 @@ This function is compatible with the following operating systems: Windows
 
 This function is compatible with the following editions of PowerShell: Desktop, Core
 
+This function is compatible with the following versions of PowerShell: All
+
 .PARAMETER LogName
 The name of the event source to write the log message to.
 
@@ -359,12 +439,12 @@ Function Write-NamedEventLogWarn {
         [Parameter(Mandatory = $true, `
                     ValueFromPipeline = $true, `
                     ValueFromPipelineByPropertyName = $true, `
-                    HelpMessage = "Please provide the name of the Event Log Source to use.")]
+                    HelpMessage = 'Please provide the name of the Event Log Source to use.')]
         [String]$LogName,
         [Parameter(Mandatory = $true, `
                     ValueFromPipeline = $true, `
                     ValueFromPipelineByPropertyName = $true, `
-                    HelpMessage = "Please provide the message to write to the Event Log Source.")]
+                    HelpMessage = 'Please provide the message to write to the Event Log Source.')]
         [String]$Message
     )
     Begin {
@@ -374,7 +454,7 @@ Function Write-NamedEventLogWarn {
         }
         if(-NOT(Assert-OSWindows)) {
             Write-Error `
-                -Message "$ERRORMSG_COMPAT Write-NamedEventLogWarn"
+                -Message "$ERRORMSG_OSCOMPAT Write-NamedEventLogWarn"
             throw(New-Object `
                 -TypeName System.PlatformNotSupportedException)
         }
@@ -406,6 +486,8 @@ This function is compatible with the following operating systems: Windows
 
 This function is compatible with the following editions of PowerShell: Desktop, Core
 
+This function is compatible with the following versions of PowerShell: All
+
 .PARAMETER LogName
 The name of the event source to write the log message to.
 
@@ -417,12 +499,12 @@ Function Write-NamedEventLogError {
         [Parameter(Mandatory = $true, `
                     ValueFromPipeline = $true, `
                     ValueFromPipelineByPropertyName = $true, `
-                    HelpMessage = "Please provide the name of the Event Log Source to use.")]
+                    HelpMessage = 'Please provide the name of the Event Log Source to use.')]
         [String]$LogName,
         [Parameter(Mandatory = $true, `
                     ValueFromPipeline = $true, `
                     ValueFromPipelineByPropertyName = $true, `
-                    HelpMessage = "Please provide the message to write to the Event Log Source.")]
+                    HelpMessage = 'Please provide the message to write to the Event Log Source.')]
         [String]$Message
     )
     Begin {
@@ -432,7 +514,7 @@ Function Write-NamedEventLogError {
         }
         if(-NOT(Assert-OSWindows)) {
             Write-Error `
-                -Message "$ERRORMSG_COMPAT Write-NamedEventLogError"
+                -Message "$ERRORMSG_OSCOMPAT Write-NamedEventLogError"
             throw(New-Object `
                 -TypeName System.PlatformNotSupportedException)
         }
@@ -464,6 +546,8 @@ This function is compatible with the following operating systems: Windows
 
 This function is compatible with the following editions of PowerShell: Desktop, Core
 
+This function is compatible with the following versions of PowerShell: All
+
 A lot of this code was derived from other code on the interwebs. I'm still not sure what the PassThru thing does. I just know this works.
 #>
 Function Test-RegistryKey {
@@ -471,12 +555,12 @@ Function Test-RegistryKey {
         [Parameter(Mandatory = $true, `
                     ValueFromPipeline = $true, `
                     ValueFromPipelineByPropertyName = $true, `
-                    HelpMessage = "A valid path in the registry is required.")]
+                    HelpMessage = 'A valid path in the registry is required.')]
         [String]$RegistryPath,
         [Parameter(Mandatory = $true, `
                     ValueFromPipeline = $true, `
                     ValueFromPipelineByPropertyName = $true, `
-                    HelpMessage = "A key to test for in the registry is required.")]
+                    HelpMessage = 'A key to test for in the registry is required.')]
         [String]$RegistryKey,
         [Switch]$PassThru
     )
@@ -487,7 +571,7 @@ Function Test-RegistryKey {
         }
         if(-NOT(Assert-OSWindows)) {
             Write-Error `
-                -Message "$ERRORMSG_COMPAT Test-RegistryKey"
+                -Message "$ERRORMSG_OSCOMPAT Test-RegistryKey"
             throw(New-Object `
                 -TypeName System.PlatformNotSupportedException)
         }
@@ -538,6 +622,8 @@ Checks to see if a specific RSAT feature is installed on the host.
 This function is compatible with the following operating systems: Windows
 
 This function is compatible with the following editions of PowerShell: Desktop, Core
+
+This function is compatible with the following versions of PowerShell: 5.0 or greater
 
 This function requires checking the current edition of Windows it's being run on. It accomplishes
 this by using checking the value of ($Get-ComputerInfo).WindowsEditionId. If the value is that
@@ -609,6 +695,8 @@ Function Assert-RSATFeatureInstalled {
                 -Message "$ERRORMSG_OSCOMPAT Assert-RSATFeatureInstalled"
             throw(New-Object `
                 -TypeName System.PlatformNotSupportedException)
+        }
+        if(-NOT(Assert-PSVersionModern)) {
         }
     }
     Process {
@@ -848,7 +936,15 @@ Function Clear-Taskbar {
 
 
 
-<##>
+<#
+.SYNOPSIS
+Works through most of the options in the Settings app and cleans house on them.
+
+.DESCRIPTION
+This function is compatible with the following operating systems: Windows
+
+This function is compatible with the following editions of PowerShell: Desktop, Core
+#>
 Function Clear-Settings {
     Begin {
         if($DEBUG -EQ $true) {
@@ -967,6 +1063,17 @@ Function Clear-Settings {
     }
 }
 
+
+
+<#
+.SYNOPSIS
+Attempts to clean up and stop as much of the advertising as possible.
+
+.DESCRIPTION
+This function is compatible with the following operating systems: Windows
+
+This function is compatible with the following editions of PowerShell: Desktop, Core
+#>
 Function Clear-Advertising {
     Begin {
         if($DEBUG -EQ $true) {
@@ -1258,7 +1365,15 @@ Function Clear-Advertising {
 
 
 
-<##>
+<#
+.SYNOPSIS
+Optimizes and privatizes the Windows Update functionality.
+
+.DESCRIPTION
+This function is compatible with the following operating systems: Windows
+
+This function is compatible with the following editions of PowerShell: Desktop, Core
+#>
 Function Optimize-WindowsUpdate {
     Begin {
         if($DEBUG -EQ $true) {
@@ -1285,7 +1400,15 @@ Function Optimize-WindowsUpdate {
 
 
 
-<##>
+<#
+.SYNOPSIS
+Enables some developer stuff on the computer.
+
+.DESCRIPTION
+This function is compatible with the following operating systems: Windows
+
+This function is compatible with the following editions of PowerShell: Desktop, Core
+#>
 Function Enable-DeveloperStuff {
     Begin {
         if($DEBUG -EQ $true) {
@@ -1318,18 +1441,61 @@ Function Enable-DeveloperStuff {
 
 
 
-<##>
+<#
+.SYNOPSIS
+Obtains a file from a file server.
+
+.DESCRIPTION
+This function is compatible with the following operating systems: Windows
+
+This function is compatible with the following editions of PowerShell: Desktop, Core
+
+Obtains a specific file from a specific file server. The client code will specify each of these values through parameters. Additionally, the function will require credentials, which knocks the requirements of the execution environment to PS 3.0. The use of the credentials is through a PSCredentials instance.
+
+.PARAMETER SourcePath
+The source location from where to look for the source file. THis can be a local or server path.
+
+.PARAMETER SourceFile
+The file to copy from the source, located within the SourcePath.
+
+.PARAMETER DestPath
+The destination location where you want to copy the source file to. This can be a local or server path.
+
+.PARAMETER DestFile
+The file that will be written at the destination. The filename can be either the same or different from the source.
+
+.PARAMETER Creds
+A PSCredential instance that will be used to authenticate with the server side of the equation, if necessary.
+
+.EXAMPLE
+Get-FileFromServer -SourcePath "\\Server\Path" -SourceFile "File.exe" -DestPath "C:\DestPath" -DestFile "File.exe" -Creds (New-Object -TypeName "System.Management.Automation.PSCredential" -Argument "Dom\UserName", (ConvertTo-SecureString -String "PWClearText" -AsPlainText -Force))
+#>
 Function Get-FileFromServer {
     Param (
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = "Please provide a path on a remote server to obtain a file from.")]
+        [Parameter(Mandatory = $true, `
+                    ValueFromPipeline = $true, `
+                    ValueFromPipelineByPropertyName = $true, `
+                    HelpMessage = "Please provide a path on a remote server to obtain a file from.")]
         [String]$SourcePath,
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = "Please provide a file on a remote server to obtain.")]
+        [Parameter(Mandatory = $true, `
+                    ValueFromPipeline = $true, `
+                    ValueFromPipelineByPropertyName = $true, `
+                    HelpMessage = "Please provide a file on a remote server to obtain.")]
         [String]$SourceFile,
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = "Please provide a path on the local computer to place the remote file in.")]
+        [Parameter(Mandatory = $true, `
+                    ValueFromPipeline = $true, `
+                    ValueFromPipelineByPropertyName = $true, `
+                    HelpMessage = "Please provide a path on the local computer to place the remote file in.")]
         [String]$DestPath,
-        [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = "Please provide the name of the new file on the local computer.")]
+        [Parameter(Mandatory = $false, `
+                    ValueFromPipeline = $true, `
+                    ValueFromPipelineByPropertyName = $true, `
+                    HelpMessage = "Please provide the name of the new file on the local computer.")]
         [String]$DestFile = $SourceFile,
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = "Please provide credentials to use to connect to the source.")]
+        [Parameter(Mandatory = $true, `
+                    ValueFromPipeline = $true, `
+                    ValueFromPipelineByPropertyName = $true, `
+                    HelpMessage = "Please provide credentials to use to connect to the source.")]
         [PSCredential]$Creds
     )
     Begin {
@@ -1431,18 +1597,36 @@ A numeric value representing the Interface Index that was assigned by Windows to
 #>
 Function New-LoopbackAdapter {
     Param (
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = "The name of the new adapter is missing. Please provide it.")]
+        [Parameter(Mandatory = $true, `
+                    ValueFromPipeline = $true, `
+                    ValueFromPipelineByPropertyName = $true, `
+                    HelpMessage = "The name of the new adapter is missing. Please provide it.")]
         [String]$AdapterName,
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = "The IP Address of the new adapter is missing. Please provide it.")]
+        [Parameter(Mandatory = $true, `
+                    ValueFromPipeline = $true, `
+                    ValueFromPipelineByPropertyName = $true, `
+                    HelpMessage = "The IP Address of the new adapter is missing. Please provide it.")]
         [System.Net.IPAddress]$IPAddress,
-        [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = "The metric of the adapter is missing. Please provide it.")]
+        [Parameter(Mandatory = $false, `
+                    ValueFromPipeline = $true, `
+                    ValueFromPipelineByPropertyName = $true, `
+                    HelpMessage = "The metric of the adapter is missing. Please provide it.")]
         [String]$Metric = "50",
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = "The MAC Address of the adapter is missing. Please provide it.")]
+        [Parameter(Mandatory = $true, `
+                    ValueFromPipeline = $true, `
+                    ValueFromPipelineByPropertyName = $true, `
+                    HelpMessage = "The MAC Address of the adapter is missing. Please provide it.")]
         [AllowEmptyString()]
         [String]$MACAddress,
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = "Interface ID is not specified. Please provide it.")]
+        [Parameter(Mandatory = $true, `
+                    ValueFromPipeline = $true, `
+                    ValueFromPipelineByPropertyName = $true, `
+                    HelpMessage = "Interface ID is not specified. Please provide it.")]
         [String]$IfIndex,
-        [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = "While the mask isn't required, understand the default value is 32.")]
+        [Parameter(Mandatory = $false, `
+                    ValueFromPipeline = $true, `
+                    ValueFromPipelineByPropertyName = $true, `
+                    HelpMessage = "While the mask isn't required, understand the default value is 32.")]
         [Byte]$Mask = 32
     )
     Begin {
@@ -1460,7 +1644,8 @@ Function New-LoopbackAdapter {
     Process {
         $devconFound = Test-Path -Path .\devcon.exe
         if(-NOT($devconFound)) {
-            throw New-Object -TypeName System.Exception
+            throw New-Object `
+                    -TypeName System.Exception
         }
 
         # Create the loopback adapter
@@ -1566,7 +1751,10 @@ Hardware Class Specification
 #>
 Function Remove-LoopbackAdapter {
     Param (
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = "HWID Class specification is required.")]
+        [Parameter(Mandatory = $true, `
+                    ValueFromPipeline = $true, `
+                    ValueFromPipelineByPropertyName = $true, `
+                    HelpMessage = "HWID Class specification is required.")]
         [String]$HwidCls
     )
     Begin {
@@ -1584,7 +1772,8 @@ Function Remove-LoopbackAdapter {
     Process {
         $devconFound = Test-Path -Path .\devcon.exe
         if(-NOT($devconFound)) {
-            throw New-Object -TypeName System.Exception
+            throw New-Object `
+                    -TypeName System.Exception
         } 
         .\devcon.exe remove -net $HwidCls | Out-Null
     }
